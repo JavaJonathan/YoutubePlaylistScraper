@@ -1,0 +1,99 @@
+############################################
+# OS / Editor
+############################################
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*.log
+
+############################################
+# Node / React
+############################################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+dist/
+build/
+.vite/
+.cache/
+.next/
+
+.env
+.env.*
+!.env.example
+
+############################################
+# Puppeteer
+############################################
+.puppeteer/
+chrome-profile/
+chrome-data/
+
+############################################
+# .NET / ASP.NET Core
+############################################
+bin/
+obj/
+out/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+############################################
+# Visual Studio / Rider / VS Code
+############################################
+.vs/
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+############################################
+# ASP.NET Core Secrets
+############################################
+secrets.json
+appsettings.Development.json
+appsettings.Local.json
+
+############################################
+# SQL Server / Local DB
+############################################
+*.mdf
+*.ldf
+*.bak
+
+############################################
+# Logs
+############################################
+logs/
+*.log
+
+############################################
+# Coverage / Testing
+############################################
+coverage/
+TestResults/
+
+############################################
+# Build Artifacts
+############################################
+*.dll
+*.exe
+*.pdb
+
+############################################
+# Misc
+############################################
+*.zip
+*.tar
+*.tar.gz
+*.rar
