@@ -7,30 +7,48 @@ app.use(cors());
 app.use(express.json());
 
 app.post("/api/scrapePlaylist", async (req, res) => {
-    try{
-  const { url } = req.body;
-  if (!url) return res.status(400).json({ error: "Missing url" });
+  try {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: "Missing url" });
 
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
 
-  await page.goto(url, { waitUntil: "networkidle2" });
+    await page.goto(url, { waitUntil: "networkidle2" });
 
-  const videos = await page.$$eval("#video-title", els =>
-    els
-      .map(el => ({ title: el.textContent.trim(), href: el.href }))
-      .filter(v => v.title && v.href)
-  );
+    await autoScrollPlaylist(page);
 
-  console.log(videos)
+    const videos = await page.$$eval(
+      "ytd-playlist-video-renderer",
+      renderers =>
+        renderers
+          .map(renderer => {
+            const titleElement = renderer.querySelector("#video-title");
+            const title = titleElement.textContent?.trim();
+            const link = titleElement.href;
+            const channel = renderer.querySelector('a[href^="/@"]')?.textContent?.trim();
 
-  await browser.close();
-  res.json({ videos });
+            if (!title || !link) return null;
+
+            return {
+              title,
+              link,
+              channel
+            };
+          })
+          .filter(Boolean)
+    );
+
+    console.log(videos);
+
+    await browser.close();
+    res.json({ videos });
   } catch (err) {
     console.error("scrapePlaylist error:", err);
     return res.status(500).json({ error: "Scrape failed" });
   }
 });
+
 
 app.post("/api/scrapeVideo", async (req, res) => {
   const { url } = req.body;
@@ -41,6 +59,8 @@ app.post("/api/scrapeVideo", async (req, res) => {
   try {
     browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
+
+    console.log(url)
 
     await page.goto(url, { waitUntil: "networkidle2" });
 
@@ -55,7 +75,7 @@ app.post("/api/scrapeVideo", async (req, res) => {
         document.querySelector("ytd-video-owner-renderer #channel-name a") ||
         document.querySelector("ytd-channel-name a");
 
-      let title =titleElement?.textContent;
+      let title = titleElement?.textContent;
       let channel = channelElement?.textContent;
 
       return { title, channel };
@@ -76,5 +96,25 @@ app.post("/api/scrapeVideo", async (req, res) => {
   }
 });
 
+async function autoScrollPlaylist(page) {
+  let previousCount = 0;
+
+  while (true) {
+    const currentCount = await page.$$eval(
+      "ytd-playlist-video-renderer",
+      nodes => nodes.length
+    );
+
+    if (currentCount === previousCount) break;
+
+    previousCount = currentCount;
+
+    await page.evaluate(() => {
+      window.scrollTo(0, document.documentElement.scrollHeight);
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 800));
+  }
+}
 
 app.listen(3001, () => console.log("API running on http://localhost:3001"));
